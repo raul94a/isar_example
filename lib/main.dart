@@ -27,6 +27,14 @@ class IsarExample extends StatefulWidget {
 
 class _IsarExampleState extends State<IsarExample> {
   final TextEditingController controller = TextEditingController();
+  final dao = UserDao();
+  List<User> users = [];
+  @override
+  void initState() {
+    super.initState();
+    dao.getAll().then((value) => setState(() => users = value));
+  }
+
   @override
   void dispose() {
     controller.dispose();
@@ -35,7 +43,6 @@ class _IsarExampleState extends State<IsarExample> {
 
   @override
   Widget build(BuildContext context) {
-    final dao = UserDao();
     return Scaffold(
         appBar: AppBar(
           title: const Text('Isar example'),
@@ -61,38 +68,34 @@ class _IsarExampleState extends State<IsarExample> {
                           user.id = id;
                           controller.clear();
 
-                          // setState(() {
-                          //   users.add(user);
-                          // });
+                          setState(() {
+                            users.add(user);
+                          });
                         },
                         child: const Text('Create user'))
                   ],
                 ),
               ),
-              StreamBuilder<List<User>>(
-                  stream: dao.watchUsers(),
-                  builder: (context, snapshot) {
-                    final users = snapshot.data ?? [];
-                    return ListView.builder(
-                        primary: false,
-                        shrinkWrap: true,
-                        itemCount: users.length,
-                        itemBuilder: (ctx, index) {
-                          final user = users[index];
-                          return ListTile(
-                            leading: Text('${user.id}'),
-                            title: Text(user.name),
-                            trailing: IconButton(
-                              onPressed: () {
-                                dao.deleteOne(user);
-                                // setState(() {
-                                //   users.removeWhere((element) => user.id == element.id);
-                                // });
-                              },
-                              icon: const Icon(Icons.delete),
-                            ),
-                          );
-                        });
+              ListView.builder(
+                  primary: false,
+                  shrinkWrap: true,
+                  itemCount: users.length,
+                  itemBuilder: (ctx, index) {
+                    final user = users[index];
+                    return ListTile(
+                      leading: Text('${user.id}'),
+                      title: Text(user.name),
+                      trailing: IconButton(
+                        onPressed: () {
+                          dao.deleteOne(user);
+                          setState(() {
+                            users.removeWhere(
+                                (element) => user.id == element.id);
+                          });
+                        },
+                        icon: const Icon(Icons.delete),
+                      ),
+                    );
                   })
             ],
           ),
